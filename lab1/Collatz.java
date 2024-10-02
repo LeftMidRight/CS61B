@@ -1,9 +1,11 @@
 /** Class that prints the Collatz sequence starting from a given number.
- *  @author YOUR NAME HERE
+ *  @author LeftMidRight
  */
 public class Collatz {
 
-    /** Buggy implementation of nextNumber! */
+    /** if n is even return n / 2
+     *  else if n is odd return n * 3 + 1
+     */
     public static int nextNumber(int n) {
         if(n % 2 == 1) {
             return n * 3 + 1;
