@@ -15,7 +15,7 @@ public class Board implements Iterable<Tile> {
     private Tile[][] values;
     /** Side that the board currently views as north. */
     private Side viewPerspective;
-
+    //方向默认是北方
     public Board(int size) {
         values = new Tile[size][size];
         viewPerspective = Side.NORTH;
@@ -85,12 +85,18 @@ public class Board implements Iterable<Tile> {
      *
      * Returns whether or not this move is a merge.
      * */
+
+    /**
+     *  把tile格移动到 col列 row行（这里的行和列是棋盘表示中的行和列），如果在移动的过程中产生了合并
+     *  那就返回True，否则返回false
+    */
     public boolean move(int col, int row, Tile tile) {
         int pcol = viewPerspective.col(col, row, size()),
                 prow = viewPerspective.row(col, row, size());
         if (tile.col() == pcol && tile.row() == prow) {
             return false;
         }
+        //取出位于 (row, col) 位置上的 tile
         Tile tile1 = vtile(col, row, viewPerspective);
         values[tile.col()][tile.row()] = null;
 

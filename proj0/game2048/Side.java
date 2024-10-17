@@ -53,12 +53,14 @@ public enum Side {
 
     /** Return the standard column number for square (C, R) on a board
      *  of size SIZE oriented with this Side on top. */
+    //把二维数组索引的列 映射为 棋盘表示中的列
     public int col(int c, int r, int size) {
         return col0 * (size - 1) + c * drow + r * dcol;
     }
 
     /** Return the standard row number for square (C, R) on a board
      *  of size SIZE oriented with this Side on top. */
+    //把二维数组索引的行 映射为 棋盘中表示的行
     public int row(int c, int r, int size) {
         return row0 * (size - 1) - c * dcol + r * drow;
     }

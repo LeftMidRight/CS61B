@@ -5,7 +5,7 @@ import java.util.Observable;
 
 
 /** The state of a game of 2048.
- *  @author TODO: YOUR NAME HERE LeftMidRight
+ *  @author LeftMidRight
  */
 public class Model extends Observable {
     /** Current contents of the board. */
@@ -114,6 +114,110 @@ public class Model extends Observable {
         // for the tilt to the Side SIDE. If the board changed, set the
         // changed local variable to true.
 
+        /** 对于一块不为 null 的 方块，在执行 tilt 方法的时候有以下几种情况
+         *  1. tile 要移动的目标位置 值和自己一样，而且目标位置上的值不是merge出来的，那么我们就直接move上去，并且记录下这次merge（以免新出来的值被merge）
+         *  2. tile 要移动的目标位置为null，那么直接 move上去
+        */
+        //向北方倾斜
+        if(side == Side.NORTH) {
+            for(int c = 0; c < board.size(); c ++) {
+                int isMerge = 0;
+                for(int r = board.size() - 1; r >= 0; r --) {
+                    Tile currentTile = board.tile(c, r);
+                    //当currentTile不为空的时候，棋盘倾斜的时候需要移动
+                    if(currentTile != null) {
+                        int targetRow = board.size() - 1;
+                        //merge出来的新值不能再被merge
+                        targetRow -= isMerge;
+                        //寻找 currentTile 要移动到的位置
+                        while(targetRow > r && board.tile(c, targetRow) != null && board.tile(c, targetRow).value() != currentTile.value()) {
+                            targetRow--;
+                        }
+                        System.out.println("r:" + r  + " " + "c:" + c + " " + "targetRow:" + targetRow);
+                        //如果目标位置不是当前位置的话，我们就要 move
+                        if(targetRow != r) {
+                            if(board.move(c, targetRow, currentTile)) {
+                                isMerge ++;
+                                score += 2 * currentTile.value();
+                            }
+                            changed = true;
+                        }
+                    }
+                }
+            }
+        } else if(side == Side.SOUTH) {
+            for(int c = 0; c < board.size(); c ++) {
+                int isMerge = 0;
+                for(int r = 0; r < board.size(); r ++) {
+                    Tile currentTile = board.tile(c, r);
+                    if(currentTile != null) {
+                        int targetRow = 0;
+                        //merge出来的新值不能再被merge
+                        targetRow += isMerge;
+                        //寻找 currentTile 要移动到的位置
+                        while(targetRow < r && board.tile(c, targetRow) != null && board.tile(c, targetRow).value() != currentTile.value()) {
+                            targetRow ++;
+                        }
+                        //如果目标位置不是当前位置的话，我们就要 move
+                        if(targetRow != r) {
+                            if(board.move(c, targetRow, currentTile)) {
+                                isMerge ++;
+                                score += 2 * currentTile.value();
+                            }
+                            changed = true;
+                        }
+                    }
+                }
+            }
+        } else if(side == Side.WEST) {
+            for(int r = 0; r < board.size(); r ++) {
+                int isMerge = 0;
+                for(int c = 0; c < board.size(); c ++) {
+                    Tile currentTile = board.tile(c, r);
+                    if(currentTile != null) {
+                        int targetCol = 0;
+                        //merge出来的新值不能再被merge
+                        targetCol += isMerge;
+                        //寻找 currentTile 要移动到的位置
+                        while(targetCol < c && board.tile(targetCol, r) != null && board.tile(targetCol, r).value() != currentTile.value()) {
+                            targetCol ++;
+                        }
+                        //如果目标位置不是当前位置的话，我们就要 move
+                        if(targetCol != c) {
+                            if(board.move(targetCol, r, currentTile)) {
+                                isMerge ++;
+                                score += 2 * currentTile.value();
+                            }
+                            changed = true;
+                        }
+                    }
+                }
+            }
+        } else {
+            for(int r = 0; r < board.size(); r ++) {
+                int isMerge = 0;
+                for(int c = board.size() - 1; c >= 0; c --) {
+                    Tile currentTile = board.tile(c, r);
+                    if(currentTile != null) {
+                        int targetCol = board.size() - 1;
+                        //merge出来的新值不能再被merge
+                        targetCol -= isMerge;
+                        //寻找 currentTile 要移动到的位置
+                        while(targetCol > c && board.tile(targetCol, r) != null && board.tile(targetCol, r).value() != currentTile.value()) {
+                            targetCol --;
+                        }
+                        //如果目标位置不是当前位置的话，我们就要 move
+                        if(targetCol != c) {
+                            if(board.move(targetCol, r, currentTile)) {
+                                isMerge ++;
+                                score += 2 * currentTile.value();
+                            }
+                            changed = true;
+                        }
+                    }
+                }
+            }
+        }
         checkGameOver();
         if (changed) {
             setChanged();
@@ -138,6 +242,19 @@ public class Model extends Observable {
      * */
     public static boolean emptySpaceExists(Board b) {
         // TODO: Fill in this function.
+        /**
+         * get the size of board b, because b is a square, its length and width both equals b.size()
+         *  then scan all element of b, if one of its element is null return true
+         *  if we have scanned all the board and don't return true, that means all space is not null, so just return false
+         */
+        int boardSize = b.size();
+        for(int i = 0; i < boardSize; i ++) {
+            for(int j = 0; j < boardSize; j ++) {
+                if(b.tile(i, j) == null) {
+                    return true;
+                }
+            }
+        }
         return false;
     }
 
@@ -148,6 +265,20 @@ public class Model extends Observable {
      */
     public static boolean maxTileExists(Board b) {
         // TODO: Fill in this function.
+        /**
+         * scan the board b, then before we check the value of one space, we should check weather it is null
+         * if it is not null and its value equals MAX_PIECE, which means player win the game, so we return true
+         * if all space we have scanned don't trigger the condition, just return false
+         */
+        int boardSize = b.size();
+        for(int i = 0; i < boardSize; i ++) {
+            for(int j = 0; j < boardSize; j ++) {
+                Tile currentSpace = b.tile(i,j);
+                if(currentSpace != null && currentSpace.value() == MAX_PIECE) {
+                    return true;
+                }
+            }
+        }
         return false;
     }
 
@@ -159,6 +290,29 @@ public class Model extends Observable {
      */
     public static boolean atLeastOneMoveExists(Board b) {
         // TODO: Fill in this function.
+        if(emptySpaceExists(b)) {
+            return true;
+        }
+
+        int boardSize = b.size();
+        int[] dx = new int[]{1, -1, 0, 0};
+        int[] dy = new int[]{0, 0, 1, -1};
+        for(int i = 0; i < boardSize; i ++) {
+            for(int j = 0; j < boardSize; j ++) {
+                Tile currentSpace = b.tile(i, j);
+                int curX = currentSpace.col(), curY = currentSpace.row();
+                // check adjacent space
+                for(int k = 0; k < 4; k ++) {
+                    int newX = curX + dx[k], newY = curY + dy[k];
+                    if(newX < 0 || newX >= boardSize || newY < 0 || newY >= boardSize) {
+                        continue;
+                    }
+                    if(currentSpace.value() == b.tile(newX, newY).value()) {
+                        return true;
+                    }
+                }
+            }
+        }
         return false;
     }
 
